@@ -198,13 +198,72 @@ class CanvasDocker:
             # Save original parent and layout
             self.original_canvas_parent = canvas.parentWidget()
             self.original_canvas_layout = self.original_canvas_parent.layout() if self.original_canvas_parent else None
+
+
             # Create a dock widget for the canvas if not already done
             if not hasattr(self, 'canvas_dock_widget') or self.canvas_dock_widget is None:
                 self.log("Creating QDockWidget for canvas.")
+                from qgis.PyQt.QtWidgets import QPushButton, QWidget, QHBoxLayout, QApplication
+                from qgis.PyQt.QtGui import QIcon
+                from qgis.PyQt.QtCore import QSize, Qt
+                from qgis.PyQt.QtWidgets import QStyle
                 self.canvas_dock_widget = QDockWidget("Map Canvas", main_window)
                 self.canvas_dock_widget.setWidget(canvas)
                 self.canvas_dock_widget.setFloating(True)
                 main_window.addDockWidget(0x1, self.canvas_dock_widget)  # Qt.LeftDockWidgetArea
+                # Custom title bar with maximize and close buttons
+                from qgis.PyQt.QtWidgets import QLabel, QStyle
+                title_bar = QWidget()
+                title_bar.setStyleSheet("background: #e0e0e0; border: 1px solid #888;")
+                layout = QHBoxLayout(title_bar)
+                layout.setContentsMargins(6, 2, 6, 2)
+                layout.setSpacing(4)
+                # Add left-aligned label
+                label = QLabel("Canvas Docker")
+                label.setStyleSheet("background: transparent; border: none; font-weight: bold; color: #222;")
+                layout.addWidget(label, alignment=Qt.AlignLeft)
+                layout.addStretch()
+                maximize_btn = QPushButton()
+                maximize_btn.setIcon(self.canvas_dock_widget.style().standardIcon(QStyle.SP_TitleBarMaxButton))
+                maximize_btn.setIconSize(QSize(16, 16))
+                maximize_btn.setToolTip("Maximize to screen")
+                maximize_btn.setStyleSheet("border: none; background: transparent;")
+                layout.addWidget(maximize_btn)
+                close_btn = QPushButton()
+                close_btn.setIcon(self.canvas_dock_widget.style().standardIcon(QStyle.SP_TitleBarCloseButton))
+                close_btn.setIconSize(QSize(16, 16))
+                close_btn.setToolTip("Close and redock")
+                close_btn.setStyleSheet("border: none; background: transparent;")
+                layout.addWidget(close_btn)
+                title_bar.setLayout(layout)
+                self.canvas_dock_widget.setTitleBarWidget(title_bar)
+
+                # Store previous geometry for restore
+                self._dock_prev_geom = None
+                def maximize_dock():
+                    # Detect which screen the dock widget is on
+                    dock_geom = self.canvas_dock_widget.geometry()
+                    for screen in QApplication.screens():
+                        if screen.geometry().contains(dock_geom.center()):
+                            target_geom = screen.availableGeometry()
+                            break
+                    else:
+                        target_geom = QApplication.primaryScreen().availableGeometry()
+                    if self._dock_prev_geom is None:
+                        self._dock_prev_geom = dock_geom
+                        self.canvas_dock_widget.setGeometry(target_geom)
+                        maximize_btn.setToolTip("Restore size")
+                    else:
+                        self.canvas_dock_widget.setGeometry(self._dock_prev_geom)
+                        self._dock_prev_geom = None
+                        maximize_btn.setToolTip("Maximize to screen")
+                maximize_btn.clicked.connect(maximize_dock)
+                def close_dock():
+                    # Redock the canvas by toggling the button off
+                    self.toggle_action.setChecked(False)
+                close_btn.clicked.connect(close_dock)
+
+
             self.log("Showing dock widget.")
             self.canvas_dock_widget.show()
             self.canvas_dock_widget.raise_()

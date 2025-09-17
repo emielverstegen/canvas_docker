@@ -45,3 +45,7 @@ Emiel Verstegen
 
 ---
 For questions or feedback, please open an issue on GitHub.
+
+
+## Attributions
+Plugin icon: [Tv icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/tv "tv icons")

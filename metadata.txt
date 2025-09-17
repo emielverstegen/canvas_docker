@@ -5,7 +5,7 @@
 [general]
 name=Canvas Docker
 qgisMinimumVersion=3.0
-supportsQt6=True
+supportsQt6=False
 description=This plugin allows the QGIS map canvas to be undocked and maximized on a secondary screen, freeing up space in the main window for other dockable panels.
 version=0.1
 author=Emiel Verstegen
@@ -13,8 +13,8 @@ email=emiel@verstegen.email
 
 about=Toggle the QGIS map canvas between docked and undocked states using a toolbar button.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/emielverstegen/canvas_docker/issues
+repository=https://github.com/emielverstegen/canvas_docker
 # End of mandatory metadata
 
 # Recommended items:

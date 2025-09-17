@@ -28,7 +28,6 @@ Canvas Docker is a QGIS plugin that allows you to undock the map canvas from the
 ![Undocked Canvas Example](docs/undocked_canvas_example.png)
 
 ## Development
-- Qt6 and PyQt6 compatible
 - Designed for QGIS 3.x and above
 - Contributions and suggestions welcome!
 

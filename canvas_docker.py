@@ -24,6 +24,8 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+# import MessageLevel
+from qgis.core import Qgis
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -35,7 +37,7 @@ import os.path
 class CanvasDocker:
     def log(self, message):
         from qgis.core import QgsMessageLog
-        QgsMessageLog.logMessage(message, 'CanvasDocker', 0)  # 0 = INFO
+        QgsMessageLog.logMessage(message, 'CanvasDocker', Qgis.MessageLevel.Info)  # 0 = INFO
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
@@ -210,7 +212,12 @@ class CanvasDocker:
                 self.canvas_dock_widget = QDockWidget("Map Canvas", main_window)
                 self.canvas_dock_widget.setWidget(canvas)
                 self.canvas_dock_widget.setFloating(True)
-                main_window.addDockWidget(0x1, self.canvas_dock_widget)  # Qt.LeftDockWidgetArea
+                # Compatibility: PyQt5 vs PyQt6
+                try:
+                    dock_area = Qt.DockWidgetArea.LeftDockWidgetArea  # PyQt6
+                except AttributeError:
+                    dock_area = Qt.LeftDockWidgetArea  # PyQt5
+                main_window.addDockWidget(dock_area, self.canvas_dock_widget)
                 # Custom title bar with maximize and close buttons
                 from qgis.PyQt.QtWidgets import QLabel, QStyle
                 title_bar = QWidget()
@@ -221,16 +228,43 @@ class CanvasDocker:
                 # Add left-aligned label
                 label = QLabel("Canvas Docker")
                 label.setStyleSheet("background: transparent; border: none; font-weight: bold; color: #222;")
-                layout.addWidget(label, alignment=Qt.AlignLeft)
+                # Compatibility: PyQt5 vs PyQt6 alignment flag
+                try:
+                    align_left = Qt.AlignmentFlag.AlignLeft  # PyQt6
+                except AttributeError:
+                    align_left = Qt.AlignLeft  # PyQt5
+                layout.addWidget(label, alignment=align_left)
                 layout.addStretch()
                 maximize_btn = QPushButton()
-                maximize_btn.setIcon(self.canvas_dock_widget.style().standardIcon(QStyle.SP_TitleBarMaxButton))
+                # Robust maximize button icon selection for PyQt5/PyQt6
+                maximize_icon = QIcon()
+                try:
+                    # Try Qt6 standard pixmap
+                    maximize_icon = self.canvas_dock_widget.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_TitleBarMaxButton", None))
+                except Exception:
+                    maximize_icon = QIcon()
+                if maximize_icon.isNull():
+                    maximize_icon = QIcon.fromTheme("window-maximize")
+                if maximize_icon.isNull():
+                    maximize_icon = QIcon(":/plugins/canvas_docker/icon.png")  # fallback to your plugin icon or any custom icon
+                maximize_btn.setIcon(maximize_icon)
                 maximize_btn.setIconSize(QSize(16, 16))
                 maximize_btn.setToolTip("Maximize to screen")
                 maximize_btn.setStyleSheet("border: none; background: transparent;")
                 layout.addWidget(maximize_btn)
                 close_btn = QPushButton()
-                close_btn.setIcon(self.canvas_dock_widget.style().standardIcon(QStyle.SP_TitleBarCloseButton))
+                # Robust close button icon selection for PyQt5/PyQt6
+                close_icon = QIcon()
+                try:
+                    close_icon = QIcon.fromTheme("window-close")
+                except Exception:
+                    pass
+                if close_icon.isNull():
+                    try:
+                        close_icon = self.canvas_dock_widget.style().standardIcon(getattr(QStyle, "SP_TitleBarCloseButton", None))
+                    except Exception:
+                        close_icon = QIcon()
+                close_btn.setIcon(close_icon)
                 close_btn.setIconSize(QSize(16, 16))
                 close_btn.setToolTip("Close and redock")
                 close_btn.setStyleSheet("border: none; background: transparent;")

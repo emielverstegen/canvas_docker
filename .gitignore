@@ -1,0 +1,39 @@
+# QGIS plugin build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.bak
+*.swp
+*.tmp
+*.orig
+*.rej
+
+# Qt Designer UI files
+*.ui
+
+# Compiled resources
+resources.py
+
+# Sphinx build
+help/build/
+help/html/
+
+# Translations
+*.qm
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Python virtual environments
+venv/
+.env/
+
+# Test outputs
+*.coverage
+*.cache
+
+# Misc
+*.~*

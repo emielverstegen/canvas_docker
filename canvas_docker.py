@@ -162,6 +162,13 @@ class CanvasDocker:
 
         return action
 
+    def ensure_canvas_visible(self, *args):
+        canvas = self.iface.mapCanvas()
+        if not canvas.isVisible():
+            canvas.show()
+            canvas.raise_()
+            self.log("Ensured canvas is visible after renderComplete.")
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
@@ -178,6 +185,10 @@ class CanvasDocker:
         self.canvas_floating_widget = None
         self.original_canvas_parent = None
         self.original_canvas_geometry = None
+
+        from qgis.core import QgsProject
+        QgsProject.instance().layerWasAdded.connect(self.ensure_canvas_visible)
+        self.iface.mapCanvas().renderComplete.connect(self.ensure_canvas_visible)
 
 
     def unload(self):
